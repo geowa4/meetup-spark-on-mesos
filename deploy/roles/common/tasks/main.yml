@@ -1,0 +1,15 @@
+---
+- name: ensure ssh keys
+  authorized_key: user={{ remote_user }} key=https://github.com/{{ item }}.keys
+  with_items: "{{ gh_users }}"
+
+- name: add mesosphere keys
+  apt_key: keyserver=keyserver.ubuntu.com id=E56151BF state=present
+
+- name: add mesosphere repository
+  apt_repository: repo="deb http://repos.mesosphere.io/ubuntu trusty main" state=present
+
+- name: install common mesos packages
+  apt: name={{ item }} update_cache=yes state=present
+  with_items:
+    - mesos

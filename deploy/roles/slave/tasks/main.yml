@@ -1,0 +1,41 @@
+---
+- name: configure aws access key id
+  lineinfile: dest=/etc/environment line=AWS_ACCESS_KEY_ID={{ aws_access_key_id }} state=present
+
+- name: configure aws secret access key
+  lineinfile: dest=/etc/environment line=AWS_SECRET_ACCESS_KEY={{ aws_secret_access_key }} state=present
+
+- name: configure hostname for mesos
+  template: src=hostname.j2 dest=/etc/mesos-slave/hostname
+
+- name: configure ip for mesos
+  template: src=hostname.j2 dest=/etc/mesos-slave/ip
+
+- name: disable user switching for executors
+  template: src=no-switch_user.j2 dest=/etc/mesos-slave/no-switch_user
+
+- name: ensure marathon configuartion directory exists
+  file: path=/etc/marathon/conf state=directory
+
+- name: configure hostname for marathon
+  template: src=hostname.j2 dest=/etc/marathon/conf/hostname
+
+- name: configure mesos for zookeeper
+  template: src=zk.j2 dest=/etc/mesos/zk
+  notify:
+    - restart mesos-slave
+
+- name: ensure mesos slave is running
+  service: name=mesos-slave state=started
+
+- name: stop zookeeper
+  service: name=zookeeper state=stopped
+
+- name: ensure zookeeper does not start automatically
+  shell: echo manual > /etc/init/zookeeper.override
+
+- name: stop mesos master
+  service: name=mesos-master state=stopped
+
+- name: ensure mesos master does not start automatically
+  shell: echo manual > /etc/init/mesos-master.override

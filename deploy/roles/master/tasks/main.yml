@@ -1,0 +1,55 @@
+---
+- name: install master packages
+  apt: name={{ item }} update_cache=yes state=present
+  with_items:
+    - marathon
+    - chronos
+
+- name: configure zookeeper
+  template: src=zoo.cfg.j2 dest=/etc/zookeeper/conf/zoo.cfg
+  notify:
+    - restart zookeeper
+
+- name: configure heap size
+  lineinfile: 'dest=/etc/zookeeper/conf/environment regexp=^JAVA_OPTS= line="JAVA_OPTS={{ java_opts }}"'
+  notify:
+    - restart zookeeper
+
+- name: configure current server's id
+  template: src=myid.j2 dest=/etc/zookeeper/conf/myid
+  notify:
+    - restart zookeeper
+
+- name: ensure zookeeper has started
+  service: name=zookeeper state=started
+
+- name: configure ip for mesos
+  template: src=hostname.j2 dest=/etc/mesos-master/ip
+
+- name: configure hostname for mesos
+  template: src=hostname.j2 dest=/etc/mesos-master/hostname
+
+- name: ensure marathon configuartion directory exists
+  file: path=/etc/marathon/conf state=directory
+
+- name: configure hostname for marathon
+  template: src=hostname.j2 dest=/etc/marathon/conf/hostname
+
+- name: configure mesos for zookeeper
+  template: src=zk.j2 dest=/etc/mesos/zk
+  notify:
+    - restart mesos services
+
+- name: configure the mesos quorum
+  template: src=quorum.j2 dest=/etc/mesos-master/quorum
+  notify:
+    - restart mesos services
+
+- name: ensure mesos master is running
+  service: name=mesos-master state=started
+
+- name: stop mesos slave
+  service: name=mesos-slave state=stopped
+
+- name: ensure mesos slave does not start automatically
+  shell: echo manual > /etc/init/mesos-slave.override

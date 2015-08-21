@@ -1,0 +1,3 @@
+---
+- include: mesos_master.yml
+- include: mesos_slave.yml

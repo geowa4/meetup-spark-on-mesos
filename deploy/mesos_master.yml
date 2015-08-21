@@ -1,0 +1,24 @@
+---
+- hosts: mesos_master
+  sudo: yes
+  roles:
+    - common
+
+- hosts: master1
+  sudo: yes
+  roles:
+    - role: master
+      id: 1
+
+- hosts: master2
+  sudo: yes
+  roles:
+    - role: master
+      id: 2
+
+- hosts: master3
+  sudo: yes
+  roles:
+    - role: master
+      id: 3
+

@@ -1,0 +1,7 @@
+---
+- hosts: mesos_slave
+  sudo: yes
+  roles:
+    - common
+    - slave
+    - spark
